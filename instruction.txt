@@ -1,7 +1,0 @@
-1)	Configurer Git et télécharger les fichiers
-2)	Lancer emacs depuis le répertoire du projet puis slime
-3)	Dans emacs lancer :
-		CL−USER> (push *default-pathname-defaults* asdf:*central-registry*)
-		...
-		CL-USER> (asdf::load-system :sudoku)
-		...
