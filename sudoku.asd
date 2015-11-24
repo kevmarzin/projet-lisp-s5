@@ -14,6 +14,8 @@
   (
    (:file "package")
    (:file "sudoku")
+   (:file "grille")
+   (:file "case")
    ))
 
 (pushnew :sudoku *features*)
