@@ -6,11 +6,33 @@
    (tab :accessor tab :initform nil))
   (:documentation "grille de jeu"))
 
+(defgeneric init-grille (grille new-tab)
+  (:documentation "Initialise les cases de la grille avec le tableau new-tab"))
+
+(defgeneric modifier-case (grille ligne colonne valeur)
+  (:documentation "Modifie la case demandee avec la valeur donnee, si les arguments donnes sont valides"))
+
+;; Initialisation des cases de la grille
+;;   - avec le tableau d'entiers new-tab
+;;   - si l'entier est égal à 0, la case n'est pas modifiable
 (defmethod init-grille ((gr grille-sudoku) new-tab)
   (setf (tab gr) (make-array (list (nb-lignes gr) (nb-colonnes gr)) :initial-element nil))
   (dotimes (i (nb-lignes gr))
     (dotimes (j (nb-colonnes gr))
-      (setf (aref (tab gr) i j) (make-instance 'case-sudoku :contenu (aref new-tab i j))))))
+      (let ((contenu-case (aref new-tab i j)))
+	(setf (aref (tab gr) i j)
+	      (make-instance 'case-sudoku
+			     :contenu contenu-case
+			     :modifiable (= contenu-case 0)))))))
+
+(defmethod modifier-case ((gr grille-sudoku) ligne colonne valeur)
+  (let ((case-a-modifier (aref (tab gr) ligne colonne)))
+    (if (and (<= 0 ligne (1- (nb-lignes gr)))
+	     (<= 0 colonne (1- (nb-colonnes gr)))
+	     (<= 1 valeur 9)
+	     (modifiable case-a-modifier))
+	(setf (contenu case-a-modifier) valeur)
+	nil)))
 
 (defmethod print-object ((gr grille-sudoku) stream)
   (format stream "   | A B C | D E F | G H I |~%")

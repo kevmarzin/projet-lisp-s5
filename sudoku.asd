@@ -13,9 +13,9 @@
   :components
   (
    (:file "package")
+   (:file "case-sudoku")
+   (:file "grille-sudoku")
    (:file "sudoku")
-   (:file "grille")
-   (:file "case")
    ))
 
 (pushnew :sudoku *features*)
