@@ -34,6 +34,17 @@
 	(setf (contenu case-a-modifier) valeur)
 	nil)))
 
+(defmethod coup-valide ((gr grille-sudoku) ligne colonne valeur)
+  (let ((invalide nil))
+    (dotimes (i (nb-lignes gr))
+      (if (= valeur (contenu (aref (tab gr) i colonne)))
+	  (setf invalide t)))
+    (if (eq invalide nil)
+	(dotimes (j (nb-colonnes gr))
+	  (if (= valeur (contenu (aref (tab gr) ligne j)))
+	      (setf invalide t))))
+    invalide))
+
 (defmethod print-object ((gr grille-sudoku) stream)
   (format stream "   | A B C | D E F | G H I |~%")
   (format stream "****************************~%")

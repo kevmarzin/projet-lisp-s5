@@ -30,7 +30,8 @@
   (let ((jouer t)
 	(saisie-incorrect nil)
 	(colonne-saisie nil)
-	(ligne-saisie nil))
+	(ligne-saisie nil)
+	(valeur-saisie nil))
     (while jouer ; Boucle de jeu
       (print *grille*) ; Affichage de la grille
       (setf saisie-incorrect t)
@@ -39,10 +40,15 @@
 	(setf colonne-saisie (read-char)) ; Récupération de la colonne
 	(setf ligne-saisie (read)) ; Récupération de la ligne
 	(format t "Value? ") ; Demande de la valeur
+	(setf valeur-saisie (read)) ; Récupération de la valeur
 
 	; Vérification de la validité de la saisie, on continu la demande si elle est incorrect
-	(if (setf saisie-incorrect (not (modifier-case *grille*
+	(if (setf saisie-incorrect (or (not (modifier-case *grille*
 						       (1- ligne-saisie)
 						       (conversion-char-to-int colonne-saisie)
-						       (read))))
+						       valeur-saisie))
+				       (not (coup-valide *grille*
+							 (1- ligne-saisie)
+							 (conversion-char-to-int colonne-saisie)
+							 valeur-saisie))))
 	    (format t "Informations saisies invalides reessayer ~%"))))))
