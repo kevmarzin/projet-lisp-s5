@@ -1,12 +1,13 @@
 (in-package :sudoku)
 
+;; Grille du sudoku
 (defclass grille-sudoku ()
   ((nb-lignes :initform 9 :reader nb-lignes)
    (nb-colonnes :initform 9 :reader nb-colonnes)
    (taille-carre :initform 3 :reader taille-carre)
    (nb-coups-restants :initform 0 :accessor nb-coups-restants)
    (tab :accessor tab :initform nil))
-  (:documentation "grille de jeu"))
+  (:documentation "Grille de jeu"))
 
 (defgeneric init-grille (grille new-tab)
   (:documentation "Initialise les cases de la grille avec le tableau new-tab ainsi que le nombre de coups restants"))
@@ -16,6 +17,15 @@
 
 (defgeneric coup-valide (grille ligne colonne valeur)
   (:documentation "Détermine si le coup est valide"))
+
+(defgeneric coordonnees-carre (grille ligne colonne)
+  (:documentation "Renvoie une liste de de nombre qui sont les coordonnees du carre ou se trouve la case (ligne, colonne)"))
+
+(defgeneric coup-valide-carre (grille ligne colonne valeur)
+  (:documentation "Renvoie vrai si la valeur se trouve dans le carré de la case (ligne, colonne), hormis cette case"))
+
+(defgeneric grille-finie (grille)
+  (:documentation "Renvoie vrai si la grille est finie"))
 
 ;; Initialisation des cases de la grille
 ;;   - avec le tableau d'entiers new-tab
@@ -46,17 +56,18 @@
 (defmethod coup-valide ((gr grille-sudoku) ligne colonne valeur)
   (let ((valide t))
     (if (not (zerop valeur))
-	(progn (do ((c 0 (1+ c)))
+	(progn (do ((c 0 (1+ c))) ; parcours de la colonne
 		   ((or (not valide) (>= c (nb-colonnes gr))))
 		 (setf valide (not (= valeur (contenu (aref (tab gr) ligne c))))))
-	       (if valide
-		   (do ((l 0 (1+ l)))
+	       (if valide ; si la valeur entrée n'est pas présente sur la colonne
+		   (do ((l 0 (1+ l))) ; on vérifie sur la ligne
 		       ((or (not valide) (>= l (nb-lignes gr))) valide)
 		     (setf valide (not (= valeur (contenu (aref (tab gr) l colonne)))))))
-	       (if valide
+	       (if valide ; si la valeur entrée n'est pas présente sur la ligne et sur la colonne on vérifie dans le carré
 		   (setf valide (coup-valide-carre gr ligne colonne valeur)))))
     valide))
 
+;; Renvoie les coordonnées de la première case en haut à gauche du carré où se trouve la case spécifiée
 (defmethod coordonnees-carre ((gr grille-sudoku) ligne colonne)
   (cons (* (do ((coef-ligne 0 (1+ coef-ligne)))
 	       ((< (- ligne (* coef-ligne (taille-carre gr)))
@@ -69,6 +80,7 @@
 		 (taille-carre gr))
 	      '())))
 
+;; Vérifie que la valeur qui veut être entrée dans la case (ligne, colonne) n'est pas présente dans le carré
 (defmethod coup-valide-carre ((gr grille-sudoku) ligne colonne valeur)
   (let* ((coor-carre (coordonnees-carre gr ligne colonne))
 	 (ligne-carre (car coor-carre))
@@ -85,9 +97,9 @@
 	      (setf coup-ok nil)))))
     coup-ok))
 
+;; Retourne vraie si le nombre de coup restant à faire est de 0
 (defmethod grille-finie ((gr grille-sudoku))
   (zerop (nb-coups-restants gr)))
-  
 
 (defmethod print-object ((gr grille-sudoku) stream)
   (format stream "   | A B C | D E F | G H I |~%")

@@ -11,7 +11,7 @@
 				(0 8 0 0 1 6 0 0 0)
 				(5 0 0 2 0 0 0 0 7)))
 
-;; Creation de la grille de jeu
+;; Création de la grille de jeu
 (defparameter *grille* (make-instance 'grille-sudoku))
 
 ;; Définition de la boucle while
@@ -43,8 +43,8 @@
 	(ligne-saisie nil)
 	(valeur-saisie nil)
 	(partie-finie nil))
-    ; Boucle de jeu
-    (while (and jouer)					
+    
+    (while jouer ; Boucle de jeu
       (if (not partie-finie)
 	  (progn (print *grille*) ; Affichage de la grille
 		 (setf coup-impossible t)
