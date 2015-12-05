@@ -14,16 +14,32 @@
 ;; Création de la grille de jeu
 (defparameter *grille* (make-instance 'grille-sudoku))
 
+;; Constante permettant de distinguer le caractère permettant de quitter
+(defparameter *caractere-abandon* #\Q)
+
 ;; Définition de la boucle while
 (defmacro while (test &rest body)
   `(do ()
        ((not ,test))
      ,@body))
 
-;; Conversion du caractère passé en paramètre en un entier de 0 (A) à 25 (Z)
-(defmacro conversion-char-to-int (caractere)
-  `(- (char-int ,caractere) (char-int #\A)))
-    
+;; Vérifie que la ligne saisie par l'utilisateur est un entier
+(defun convertir-ligne (ligne-saisie)
+  (if (integerp ligne-saisie)
+      (1- ligne-saisie)
+      nil))
+
+;; Si colonne n'est composé que du caractère d'abandon, elle est retourner
+;; sinon si c'est la chaine est une lettre de A à Z elle est convertie en entier
+;; sinon nil est renvoyé
+(defun convertir-colonne (colonne-saisie)
+  (let* ((colonne (string colonne-saisie))
+	 (colonne-char (char colonne 0)))
+    (if (= (length colonne) 1)
+	(if (eq colonne-char *caractere-abandon*)
+	    colonne-char
+	    (- (char-int colonne-char) (char-int #\A)))
+	nil)))
 
 ;; Fonction qui renvoie T si les information saisie par l'utilisiateur sont valide
 (defun saisie-valide (ligne colonne valeur)
@@ -32,16 +48,15 @@
        (<= 0 valeur 9) ; 0 <= valeur <= 9
        (modifiable (aref (tab *grille*) ligne colonne)))) ; case modifiable ?
 
-
 ;; Fonction principale
 (defun sudoku (grid)
   (init-grille *grille* grid) ; Initialisation de la grille
 
   (let ((jouer t)
 	(coup-impossible nil)
-	(colonne-saisie nil)
-	(ligne-saisie nil)
-	(valeur-saisie nil)
+	(colonne-du-coup nil)
+	(ligne-du-coup nil)
+	(valeur-du-coup nil)
 	(partie-finie nil))
     
     (while jouer ; Boucle de jeu
@@ -51,26 +66,33 @@
 		 (while coup-impossible ; Boucle qui redemande la saisie tant qu'elle est incorrecte
 		   (format t "~A coups restants~%" (nb-coups-restants *grille*))
 		   (format t " C L? ") ; Demande des coordonnées de la case à modifer
-		   (setf colonne-saisie (conversion-char-to-int (read-char))) ; Récupération de la colonne
-		   (setf ligne-saisie (1- (read))) ; Récupération de la ligne
-		   (format t "Value? ") ; Demande de la valeur
-		   (setf valeur-saisie (read)) ; Récupération de la valeur
+		   (setf colonne-du-coup (convertir-colonne (read))) ; Récupération de la colonne
+		   (if (eq colonne-du-coup *caractere-abandon*)
+		       (progn (setf jouer nil)
+			      (setf coup-impossible nil))
+		       (progn (setf ligne-du-coup (convertir-ligne (read))) ; Récupération de la ligne
+			      (format t "Value? ") ; Demande de la valeur
+			      (setf valeur-du-coup (integerp (read))) ; Récupération de la valeur
 
-		   ; Vérification de la validité de la saisie, on continu la demande si elle est incorrect
-		   (if (setf coup-impossible (not (saisie-valide ligne-saisie
-								 colonne-saisie
-								 valeur-saisie)))
-		       (format t "Informations saisies invalides reessayer~%")
-		       ; vérification que le coup demandé soit valide : pas la même valeur dans le carré
-		       ; ou sur la même ligne ou colonne
-		       (if (setf coup-impossible (not (coup-valide *grille*
-								   ligne-saisie
-								   colonne-saisie
-								   valeur-saisie)))
-			   (format t "Coup impossible reessayer~%")
-			   (progn (jouer-coup *grille* ligne-saisie colonne-saisie valeur-saisie) ; jouer le coup
-				  (setf partie-finie (grille-finie *grille*))))))) ; vérifier que la grille n'est pas finie
-	  (progn (format t "Bien joue !! (quitter avec q) ") ; Message de fin
-		 (if (equal #\q (read-char))
-		     (setf jouer nil)))))))
+			      ; Vérification de la validité de la saisie, on continu la demande si elle est incorrect
+			      (if (and colonne-du-coup
+				       ligne-du-coup
+				       valeur-du-coup
+				       (setf coup-impossible (not (saisie-valide ligne-du-coup
+										 colonne-du-coup
+										 valeur-du-coup))))
+				  (format t "Informations saisies invalides reessayer~%")
+
+				  ; vérification que le coup demandé soit valide : pas la même valeur dans le carré
+				  ; ou sur la même ligne ou colonne
+				  (if (setf coup-impossible (not (coup-valide *grille*
+									      ligne-du-coup
+									      colonne-du-coup
+									      valeur-du-coup)))
+				      (format t "Coup impossible reessayer~%")
+				      (progn (jouer-coup *grille* ligne-du-coup colonne-du-coup valeur-du-coup) ; jouer le coup
+					     (setf partie-finie (grille-finie *grille*))))))))) ; vérifier que la grille n'est pas finie
+		   (progn (format t "Bien joue !! (quitter avec Q) ") ; Message de fin
+			  (if (equal *caractere-abandon* (read-char))
+			      (setf jouer nil)))))))
 		
