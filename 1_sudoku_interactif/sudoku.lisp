@@ -91,7 +91,7 @@
 				      (format t "Coup impossible reessayer~%")
 				      (progn (jouer-coup *grille* ligne-du-coup colonne-du-coup valeur-du-coup) ; jouer le coup
 					     (setf partie-finie (grille-finie *grille*))))))))) ; vérifier que la grille n'est pas finie
-		   (progn (format t "Bien joue !! (quitter avec Q) ") ; Message de fin
-			  (if (equal *caractere-abandon* (read-char))
-			      (setf jouer nil)))))))
+	  (progn (format t "Bien joue !! (quitter avec Q) ") ; Message de fin
+		 (if (equal *caractere-abandon* (read-char))
+		     (setf jouer nil)))))))
 		
