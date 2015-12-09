@@ -7,4 +7,4 @@
   (:documentation "Case de la grille de sudoku"))
 
 (defmethod print-object ((c case-sudoku) stream)
-  (format stream "~A " (slot-value c 'contenu)))
+  (format stream "~A " (contenu c)))

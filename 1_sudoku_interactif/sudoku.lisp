@@ -1,16 +1,5 @@
 (in-package :sudoku)
 
-; Grille de départ de test
-(defparameter *grille-test* #2A((1 0 0 0 0 4 0 0 5)
-				(0 0 0 9 5 0 0 8 0)
-				(0 0 0 0 0 3 0 9 0)
-				(0 0 5 0 0 2 0 0 4)
-				(0 0 1 0 6 0 7 0 0)
-				(7 0 0 3 0 0 2 0 0)
-				(0 6 0 5 0 0 0 0 0)
-				(0 8 0 0 1 6 0 0 0)
-				(5 0 0 2 0 0 0 0 7)))
-
 ;; Création de la grille de jeu
 (defparameter *grille* (make-instance 'grille-sudoku))
 
@@ -29,8 +18,8 @@
       (1- ligne-saisie)
       nil))
 
-;; Si colonne n'est composé que du caractère d'abandon, elle est retourner
-;; sinon si c'est la chaine est une lettre de A à Z elle est convertie en entier
+;; Si colonne n'est composée que du caractère d'abandon, elle est retourner
+;; sinon si la chaine n'est composé que d'un seul caractère elle est convertie en entier avec A => 0 et Z => 25
 ;; sinon nil est renvoyé
 (defun convertir-colonne (colonne-saisie)
   (let* ((colonne (string colonne-saisie))
@@ -41,7 +30,10 @@
 	    (- (char-int colonne-char) (char-int #\A)))
 	nil)))
 
-;; Fonction qui renvoie T si les information saisie par l'utilisiateur sont valide
+;; Fonction qui renvoie T si les informations saisies :
+;;  - sont pour une case dans la grille
+;;  - sont avec un valeur entre 0 et 9
+;;  - n'ont pas les coordonnées d'une case remplie au départ
 (defun saisie-valide (ligne colonne valeur)
   (and (<= 0 ligne (1- (nb-lignes *grille*))) ; 0 <= ligne <= nb-lignes - 1
        (<= 0 colonne (1- (nb-colonnes *grille*))) ; 0 <= colonne <= nb-colonnes - 1
@@ -62,12 +54,12 @@
     (while jouer ; Boucle de jeu
       (if (not partie-finie)
 	  (progn (print *grille*) ; Affichage de la grille
-		 (setf coup-impossible t)
+		 (setf coup-impossible t) ; Pour rentrer dans la boucle qui demande la saisie
 		 (while coup-impossible ; Boucle qui redemande la saisie tant qu'elle est incorrecte
 		   (format t "~A coups restants~%" (nb-coups-restants *grille*))
 		   (format t " C L? ") ; Demande des coordonnées de la case à modifer
 		   (setf colonne-du-coup (convertir-colonne (read))) ; Récupération de la colonne
-		   (if (eq colonne-du-coup *caractere-abandon*)
+		   (if (eq colonne-du-coup *caractere-abandon*) ; si l'utilisateur veut abandonner on quitte les boucles
 		       (progn (setf jouer nil)
 			      (setf coup-impossible nil))
 		       (progn (setf ligne-du-coup (convertir-ligne (read))) ; Récupération de la ligne
@@ -82,8 +74,7 @@
 										 valeur-du-coup))))
 				  (format t "Informations saisies invalides reessayer~%")
 
-				  ; vérification que le coup demandé soit valide : pas la même valeur dans le carré
-				  ; ou sur la même ligne ou colonne
+				  ; vérification que le coup demandé soit valide : n'engendre un grille invalide
 				  (if (setf coup-impossible (not (coup-valide *grille*
 									      ligne-du-coup
 									      colonne-du-coup

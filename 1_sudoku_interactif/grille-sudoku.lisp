@@ -16,7 +16,7 @@
   (:documentation "Modifie la case demandee avec la valeur donnee, si les arguments donnes sont valides"))
 
 (defgeneric coup-valide (grille ligne colonne valeur)
-  (:documentation "Détermine si le coup est valide"))
+  (:documentation "Determine si le coup est valide"))
 
 (defgeneric coordonnees-carre (grille ligne colonne)
   (:documentation "Renvoie une liste de de nombre qui sont les coordonnees du carre ou se trouve la case (ligne, colonne)"))
@@ -33,7 +33,10 @@
 ;; Et initialisation du nombre de coups restants
 (defmethod init-grille ((gr grille-sudoku) new-tab)
   (setf (tab gr) (make-array (list (nb-lignes gr) (nb-colonnes gr)) :initial-element nil))
-  (setf (nb-coups-restants gr) (* (nb-lignes gr) (nb-colonnes gr))) 
+  (setf (nb-coups-restants gr) (* (nb-lignes gr) (nb-colonnes gr)))
+
+  ;; Parcours de la grille et initialisation des cases
+  ;; Le nombre de coups restants est mis à jour quand une case contient un numéro
   (dotimes (i (nb-lignes gr))
     (dotimes (j (nb-colonnes gr))
       (let ((contenu-case (aref new-tab i j)))
@@ -48,7 +51,7 @@
 (defmethod jouer-coup ((gr grille-sudoku) ligne colonne valeur)
   (setf (contenu (aref (tab gr) ligne colonne))
 	valeur)
-  (if (not (zerop valeur))
+  (if (not (zerop valeur)) ; MAJ du nombre de coups restant selon la valeur rentrée
       (decf (nb-coups-restants gr))
       (incf (nb-coups-restants gr))))
 
@@ -74,11 +77,10 @@
 		   (taille-carre gr))
 		coef-ligne))
 	   (taille-carre gr))
-	(cons (* (do ((coef-colonne 0 (1+ coef-colonne)))
+	(list (* (do ((coef-colonne 0 (1+ coef-colonne)))
 		     ((< (- colonne (* coef-colonne (taille-carre gr)))
 			 (taille-carre gr)) coef-colonne))
-		 (taille-carre gr))
-	      '())))
+		 (taille-carre gr)))))
 
 ;; Vérifie que la valeur qui veut être entrée dans la case (ligne, colonne) n'est pas présente dans le carré
 (defmethod coup-valide-carre ((gr grille-sudoku) ligne colonne valeur)
@@ -90,30 +92,32 @@
       (dotimes (c (taille-carre gr))
 	(let* ((ligne-a-verif (+ ligne-carre l))
 	      (colonne-a-verif (+ colonne-carre c))
-	      (contenu-a-verif (contenu (aref (tab gr) ligne-a-verif colonne-a-verif))))
+	       (contenu-a-verif (contenu (aref (tab gr) ligne-a-verif colonne-a-verif))))
+	  ;; Si on est pas sur la case à modifier, et que les valeurs sont les mêmes le coups n'est pas bon
 	  (if (and (not (= ligne-a-verif ligne))
 		   (not (= colonne-a-verif colonne))
 		   (= contenu-a-verif valeur))
 	      (setf coup-ok nil)))))
     coup-ok))
 
-;; Retourne vraie si le nombre de coup restant à faire est de 0
+;; Retourne vraie si le nombre de coups restants à faire est de 0
 (defmethod grille-finie ((gr grille-sudoku))
   (zerop (nb-coups-restants gr)))
 
+;; Affichage de la grille
 (defmethod print-object ((gr grille-sudoku) stream)
   (format stream "   | A B C | D E F | G H I |~%")
   (format stream "****************************~%")
   (dotimes (i (nb-lignes gr))
-    (if (and (> i 0) (= (mod i 3) 0))
+    (if (and (> i 0) (= (mod i (taille-carre gr)) 0))
 	(format stream "****************************~%"))
     (format stream " ~A | " (1+ i))
     (dotimes (j (nb-colonnes gr))
-      (if (and (> j 0) (= (mod j 3) 0))
+      (if (and (> j 0) (= (mod j (taille-carre gr)) 0))
 	  (format stream "| "))
       (if (zerop (contenu (aref (tab gr) i j)))
 	  (format stream "  ")
-	  (format stream "~A " (contenu (aref (tab gr) i j))))
-      (if (= j 8)
+	  (print-object (aref (tab gr) i j) stream))
+      (if (= j (1- (nb-colonnes gr)))
 	  (format stream "|~%"))))
   (format stream "****************************~%"))
