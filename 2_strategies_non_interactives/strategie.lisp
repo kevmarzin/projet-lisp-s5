@@ -134,23 +134,6 @@
 	      (setf coup-ok nil)))))
     coup-ok))
 
-(defmethod print-object ((gr grille-sudoku) stream)
-  (format stream "   | A B C | D E F | G H I |~%")
-  (format stream "****************************~%")
-  (dotimes (i (nb-lignes gr))
-    (if (and (> i 0) (= (mod i 3) 0))
-	(format stream "****************************~%"))
-    (format stream " ~A | " (1+ i))
-    (dotimes (j (nb-colonnes gr))
-      (if (and (> j 0) (= (mod j 3) 0))
-	  (format stream "| "))
-      (if (zerop (contenu (aref (tab gr) i j)))
-	  (format stream "  ")
-	  (format stream "~A " (contenu (aref (tab gr) i j))))
-      (if (= j 8)
-	  (format stream "|~%"))))
-  (format stream "****************************~%"))
-
 ;; Création de la grille de jeu
 (defparameter *grille* (make-instance 'grille-sudoku))
 
@@ -182,7 +165,6 @@
 		     (setf valeur-case (car (coups-possibles case-a-verifiee)))))
 	  (incf c)))
       (incf l))
-    (format t "strat-inclusion : ~A~%" case-trouvee)
     (if case-trouvee
 	(progn (jouer-coup *grille* ligne-case colonne-case valeur-case) ; on joue le coup
 	       (values ligne-case colonne-case valeur-case)) ; et on retourne les valeurs
@@ -216,7 +198,6 @@
 		  (setf retour-colonne c) ; sauvegarde de la colonne de la case
 		  (incf c)))) ; on change de case sinon
 	  (incf ligne-a-verif))) ; on change de ligne si toutes les valeurs sont trouvées plusieurs fois sur la ligne
-    (format t "strat-exclusion-ligne : ~A~%" case-trouvee)
     (if case-trouvee
 	(progn (jouer-coup *grille* ligne-a-verif retour-colonne (1+ (position 1 occurrence-valeurs)))
 	       (values ligne-a-verif retour-colonne (1+ (position 1 occurrence-valeurs))))
@@ -251,7 +232,6 @@
 		  (setf retour-ligne l) ; sauvegarde de la ligne de la case
 		  (incf l)))) ; on change de case sinon 
 	  (incf colonne-a-verif))) ; onchange de colonne si toutes les valeurs sont trouvées plusieurs fois sur la ligne
-    (format t "strat-exclusion-colonne : ~A~%" case-trouvee)
     (if case-trouvee
 	(progn (jouer-coup *grille* retour-ligne colonne-a-verif (1+ (position 1 occurrence-valeurs)))
 	       (values retour-ligne colonne-a-verif (1+ (position 1 occurrence-valeurs))))
@@ -305,7 +285,6 @@
 		(incf l)))
 	    (incf numcarre-colonne)))
       (incf numcarre-ligne))
-    (format t "strat-exclusion-carre : ~A~%" case-trouvee)
     (if case-trouvee
 	(progn (jouer-coup *grille* ligne-case-a-changer colonne-case-a-changer valeur-retour)
 	       (values ligne-case-a-changer colonne-case-a-changer valeur-retour))
@@ -314,7 +293,6 @@
 ;; Si deux cases contiennent la même paire de coups possibles sur une ligne
 ;; alors ces coups peuvent être enlevés des autres cases de cette ligne
 (defun strat-paire-exclusive-ligne ()
-  (format t "strat-paire-exclusive-ligne~%")
   (let ((ligne-a-verif 0)
 	(cases-trouvees nil)
 	(liste-cases-trouvees nil)
@@ -370,7 +348,6 @@
 ;; Si deux cases contiennent la même paire de coups possibles sur une colonne
 ;; alors ces coups peuvent être enlevés des autres cases de cette colonne
 (defun strat-paire-exclusive-colonne ()
-  (format t "strat-paire-exclusive-colonne~%")
   (let ((colonne-a-verif 0)
 	(cases-trouvees nil)
 	(liste-cases-trouvees nil)
@@ -511,7 +488,6 @@
 			    (set-difference (coups-possibles case-a-verifier) paire-coups-possibles)))))))
 	(incf numcarre-colonne))
       (incf numcarre-ligne))
-    (format t "strat-paire-exclusive-carre~%")
     paire-coups-possibles))
 
 ;; Initialisation de la grille
@@ -534,7 +510,7 @@
       (if (not (setf liste-coup (multiple-value-bind (l c val) (eval (nth num-strat *liste-strat*))
 				  (if (not l)
 				      nil
-				      (list *grille* l c val)))))
+				      (list l c val)))))
 	  (progn (incf num-strat)
 		 (if (and (= num-strat (length *liste-strat*))
 			  (or (strat-paire-exclusive-colonne) (strat-paire-exclusive-ligne) (strat-paire-exclusive-carre)))
